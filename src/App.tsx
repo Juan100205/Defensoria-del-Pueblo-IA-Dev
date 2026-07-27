@@ -1,122 +1,90 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useCallback } from 'react';
+import { SvgDefs } from './icons/Icons';
+import { Toast } from './components/ui/Toast';
+import { Modal } from './components/ui/Modal';
+import { DemoBar } from './components/layout/DemoBar';
+import { PortalScene } from './features/portal/PortalScene';
+import { ChatScene } from './features/chat/ChatScene';
+import { ConfirmationScene } from './features/confirmation/ConfirmationScene';
+import { MailScene } from './features/mail/MailScene';
+import { ProcessingScene } from './features/processing/ProcessingScene';
+import { AdminScene } from './features/admin/AdminScene';
+import { useToast } from './hooks/useToast';
+import type { Scene } from './data/constants';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [scene, setScene] = useState<Scene>('portal');
+  const toast = useToast();
+  const [modalState, setModalState] = useState({ open: false, title: '', body: '', footer: '' });
+
+  const [radicado] = useState('DP-2026-014782');
+  const [fecha] = useState('22 de julio de 2026');
+  const [hora] = useState('16:40 (GMT-5)');
+  const [chatData, setChatData] = useState<Record<string, string>>({});
+
+  const handleSceneChange = useCallback((s: Scene) => {
+    setScene(s);
+    window.scrollTo(0, 0);
+    const view = document.querySelector('.view');
+    if (view) view.scrollTop = 0;
+  }, []);
+
+  const handleChatFinished = useCallback((data: Record<string, string>) => {
+    setChatData(data);
+    setScene('conf');
+  }, []);
+
+  const openModal = useCallback((title: string, body: string, footer?: string) => {
+    setModalState({ open: true, title, body, footer: footer || '' });
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModalState((s) => ({ ...s, open: false }));
+  }, []);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div id="app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <SvgDefs />
 
-      <div className="ticks"></div>
+      {scene === 'portal' && <PortalScene onNavigate={handleSceneChange} onOpenModal={openModal} />}
+      {scene === 'chat' && <ChatScene onNavigate={handleSceneChange} onFinished={handleChatFinished} />}
+      {scene === 'conf' && (
+        <ConfirmationScene
+          radicado={radicado}
+          fecha={fecha}
+          hora={hora}
+          data={chatData}
+          onNavigate={handleSceneChange}
+        />
+      )}
+      {scene === 'mail' && (
+        <MailScene
+          radicado={radicado}
+          correo={chatData.correo || 'ciudadano@correo.com'}
+          hora={hora}
+          data={chatData}
+          onNavigate={handleSceneChange}
+        />
+      )}
+      {scene === 'proc' && (
+        <ProcessingScene
+          onNavigate={handleSceneChange}
+          data={chatData}
+        />
+      )}
+      {scene === 'admin' && <AdminScene onNavigateScene={handleSceneChange} />}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <Toast message={toast.message} visible={toast.visible} />
+      <Modal
+        open={modalState.open}
+        title={modalState.title}
+        body={modalState.body}
+        footer={modalState.footer}
+        onClose={closeModal}
+      />
+      <DemoBar currentScene={scene} onNavigate={handleSceneChange} />
+    </div>
+  );
 }
 
-export default App
+export default App;
