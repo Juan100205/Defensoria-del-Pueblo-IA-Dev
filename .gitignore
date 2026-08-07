@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Supabase
+supabase/.temp/
+
+# Secretos locales de Edge Functions (Supabase CLI)
+supabase/functions/**/.env
+supabase/functions/**/.env.*
+!supabase/functions/**/.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

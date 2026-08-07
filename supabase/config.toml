@@ -1,0 +1,6 @@
+# Supabase configuration
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "defensoria-pueblo-ia"
+
+[functions.notificar-solicitud]
+verify_jwt = false
