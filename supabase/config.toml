@@ -51,3 +51,6 @@ enabled = true
 
 [analytics]
 enabled = false
+
+[functions.notificar-solicitud]
+verify_jwt = false

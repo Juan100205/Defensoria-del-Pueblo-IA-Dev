@@ -94,7 +94,7 @@ export const AGENTS = [
   { n: 'Asignador de dependencia', d: 'Propone el área y el responsable', i: 'flow' as const },
 ];
 
-export type Scene = 'portal' | 'chat' | 'conf' | 'mail' | 'proc' | 'admin';
+export type Scene = 'portal' | 'consent' | 'chat' | 'conf' | 'mail' | 'proc' | 'admin';
 
 export type AdminView = 'dash' | 'sol' | 'det' | 'alert' | 'ana' | 'exp' | 'usr' | 'cfg';
 
