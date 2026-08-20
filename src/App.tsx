@@ -9,15 +9,19 @@ import { ConfirmationScene } from './features/confirmation/ConfirmationScene';
 import { MailScene } from './features/mail/MailScene';
 import { ProcessingScene } from './features/processing/ProcessingScene';
 import { AdminScene } from './features/admin/AdminScene';
+import { LoginPage } from './features/auth/LoginPage';
 import { useToast } from './hooks/useToast';
+import { useAuth } from './contexts/AuthContext';
 import type { Scene } from './data/constants';
 
-function App() {
+function AppContent() {
   const [scene, setScene] = useState<Scene>('portal');
   const toast = useToast();
+  const { user, profile, loading } = useAuth();
   const [modalState, setModalState] = useState({ open: false, title: '', body: '', footer: '' });
 
-  const [radicado] = useState('DP-2026-014782');
+  const [createdCaseId, setCreatedCaseId] = useState<string | null>(null);
+  const [radicado, setRadicado] = useState('DP-2026-014782');
   const [fecha] = useState('22 de julio de 2026');
   const [hora] = useState('16:40 (GMT-5)');
   const [chatData, setChatData] = useState<Record<string, string>>({});
@@ -29,8 +33,10 @@ function App() {
     if (view) view.scrollTop = 0;
   }, []);
 
-  const handleChatFinished = useCallback((data: Record<string, string>) => {
+  const handleChatFinished = useCallback((data: Record<string, string>, caseId?: string, caseRadicado?: string) => {
     setChatData(data);
+    if (caseId) setCreatedCaseId(caseId);
+    if (caseRadicado) setRadicado(caseRadicado);
     setScene('conf');
   }, []);
 
@@ -41,6 +47,17 @@ function App() {
   const closeModal = useCallback(() => {
     setModalState((s) => ({ ...s, open: false }));
   }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--navy-050)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--navy)' }}>Defensoría del Pueblo</div>
+          <div style={{ fontSize: 14, color: 'var(--ink-3)', marginTop: 8 }}>Cargando sistema...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="app" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -70,9 +87,14 @@ function App() {
         <ProcessingScene
           onNavigate={handleSceneChange}
           data={chatData}
+          caseId={createdCaseId || undefined}
         />
       )}
-      {scene === 'admin' && <AdminScene onNavigateScene={handleSceneChange} />}
+      {scene === 'admin' && (
+        user && profile
+          ? <AdminScene onNavigateScene={handleSceneChange} />
+          : <LoginPage onLoginSuccess={() => handleSceneChange('admin')} />
+      )}
 
       <Toast message={toast.message} visible={toast.visible} />
       <Modal
@@ -82,9 +104,15 @@ function App() {
         footer={modalState.footer}
         onClose={closeModal}
       />
-      <DemoBar currentScene={scene} onNavigate={handleSceneChange} />
+      {scene !== 'admin' && (
+        <DemoBar currentScene={scene} onNavigate={handleSceneChange} />
+      )}
     </div>
   );
+}
+
+function App() {
+  return <AppContent />;
 }
 
 export default App;

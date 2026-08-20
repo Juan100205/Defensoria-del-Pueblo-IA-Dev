@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { ChatHeader } from '../../components/layout/ChatHeader';
 import { FlagLine } from '../../components/ui/FlagLine';
 import { ProgressBar } from '../../components/ui/ProgressBar';
@@ -10,36 +11,19 @@ import type { Scene } from '../../data/constants';
 
 interface ChatSceneProps {
   onNavigate: (scene: Scene) => void;
-  onFinished: (data: Record<string, string>) => void;
+  onFinished: (data: Record<string, string>, caseId?: string, radicado?: string) => void;
 }
 
-export function ChatScene({ onNavigate }: ChatSceneProps) {
-  const engine = useChatEngine();
+export function ChatScene({ onNavigate, onFinished }: ChatSceneProps) {
+  const handleCaseCreated = useCallback((caseId: string, caseNumber: string) => {
+    onFinished({}, caseId, caseNumber);
+  }, [onFinished]);
 
-  const handleDemoFill = () => {
-    engine.setAutoMode(true);
-    // Auto-answer sequentially
-    const answers = [
-      'Luisa Fernanda Ospina Cárdenas',
-      'CC 1.032.487.115',
-      'luisa.ospina@correo.com',
-      '318 445 0912',
-      'Medellín, Antioquia',
-      'Queja',
-      'El 3 de junio pedí a mi EPS la autorización de la cirugía que ordenó el especialista para mi mamá, que tiene 68 años. Han pasado más de 40 días, he ido tres veces a la sede y solo me dicen que el trámite sigue en estudio. Ella tiene dolor permanente y ya no puede trabajar. Necesito que la Defensoría intervenga.',
-      '2 archivos adjuntos',
-      'Autorizo el tratamiento de mis datos',
-    ];
-    let i = 0;
-    const fill = () => {
-      if (i < answers.length) {
-        engine.answer(answers[i]);
-        i++;
-        setTimeout(fill, 800);
-      }
-    };
-    fill();
-  };
+  const engine = useChatEngine(handleCaseCreated);
+
+  const progressLabel = engine.branch
+    ? `Radicando solicitud (${engine.branch})`
+    : 'Recopilando informacion';
 
   return (
     <section className="scene chat-scene on" id="sc-chat">
@@ -54,36 +38,32 @@ export function ChatScene({ onNavigate }: ChatSceneProps) {
                 <Emblem size={21} />
               </div>
               <div className="nm">
-                <b>Asistente de radicación</b>
+                <b>Asistente de radicacion</b>
                 <small>
                   <i style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />{' '}
-                  En línea · responde al instante
+                  En linea - responde al instante
                 </small>
               </div>
-              <button
-                className="btn btn-ghost btn-sm"
-                style={{ marginLeft: 'auto' }}
-                onClick={handleDemoFill}
-              >
-                Rellenar con datos de ejemplo
-              </button>
             </div>
 
-            <ProgressBar step={engine.progressStep} pct={engine.progressPct} />
+            <ProgressBar step={progressLabel} pct={engine.progressPct} />
 
             <ChatBody messages={engine.messages} typing={engine.typing} />
 
             <div className="chat-foot">
-              {engine.currentStep && !engine.busy && engine.stepIndex < 9 && (
-                <ChatInput step={engine.currentStep} onAnswer={engine.answer} />
+              {!engine.caseCreated && (
+                <ChatInput
+                  onSend={engine.send}
+                  disabled={engine.busy}
+                />
               )}
             </div>
           </div>
 
           <ChatSidebar
-            data={engine.data}
-            stepIndex={engine.stepIndex}
-            totalSteps={9}
+            data={engine.userFields}
+            branch={engine.branch}
+            progressPct={engine.progressPct}
           />
         </div>
       </div>

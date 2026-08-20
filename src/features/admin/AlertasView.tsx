@@ -1,15 +1,31 @@
+import { useState, useEffect } from 'react';
 import { Kpi } from '../../components/ui/Kpi';
 import { Icon } from '../../icons/Icons';
+import { getActiveAlerts } from '../../lib/api';
+
+interface Alert {
+  alert_type: string;
+  severity: string;
+  title: string;
+  description: string;
+  case_number: string;
+  created_at: string;
+}
 
 export function AlertasView() {
-  const alerts = [
-    { c: 'red', i: 'fire' as const, t: 'Caso sensible sin asignar hace 6 horas', p: 'DP-2026-014733 · Denuncia DDHH en Tumaco (Nariño). Supera el tiempo máximo de asignación.', b: 'Asignar ahora' },
-    { c: 'red', i: 'clock' as const, t: '3 solicitudes vencieron su término', p: 'Regional Nariño y Regional Chocó. El vencimiento se reporta al informe de cumplimiento del mes.', b: 'Ver casos' },
-    { c: 'gold', i: 'alert' as const, t: '14 casos vencen en menos de 3 días', p: 'La mayoría corresponde a peticiones en salud pendientes de respuesta de la entidad accionada.', b: 'Priorizar' },
-    { c: 'gold', i: 'copy' as const, t: 'Posible duplicado detectado', p: 'DP-2026-014770 comparte cédula, entidad y hechos con DP-2026-014612 radicada hace 9 días.', b: 'Comparar' },
-    { c: 'navy', i: 'users' as const, t: 'Carga desbalanceada en Regional Valle', p: 'Sara Guerrero acumula 19 casos activos frente a un promedio de 11 en su dependencia.', b: 'Redistribuir' },
-    { c: 'navy', i: 'shield' as const, t: '6 casos marcados como sensibles', p: 'Acceso restringido a los roles autorizados. Toda consulta queda auditada.', b: 'Revisar accesos' },
-  ];
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getActiveAlerts()
+      .then((data) => setAlerts(data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const urgentCount = alerts.filter(a => a.severity === 'red').length;
+  const warningCount = alerts.filter(a => a.severity === 'gold').length;
+  const totalAlerts = alerts.length;
 
   const cmap: Record<string, [string, string]> = {
     red: ['var(--red-050)', 'var(--red)'],
@@ -18,41 +34,46 @@ export function AlertasView() {
   };
 
   const notifs = [
-    ['MR', 'Marcela Ríos le asignó una solicitud', 'DP-2026-014782 · Queja en salud', 'Hace 5 min'],
-    ['SI', 'El sistema cerró 12 casos por respuesta de fondo', 'Regional Antioquia', 'Hace 40 min'],
-    ['PC', 'Paula Cifuentes comentó en DP-2026-014756', '"Adjunté la respuesta de la entidad"', 'Hace 1 h'],
-    ['RB', 'Ricardo Beltrán publicó el informe semanal', 'Disponible en Exportaciones', 'Ayer'],
-    ['SI', 'Actualización de la regla de priorización', 'Adultos mayores con caso en salud', 'Ayer'],
+    ['SI', 'Sistema conectado y operativo', 'Base de datos sincronizada', 'Ahora'],
+    ['MR', 'Coordinador asignado al equipo', '4 funcionarios activos', 'Hoy'],
+    ['PC', 'Análisis de casos completado', '50 casos procesados por IA', 'Hoy'],
+    ['RB', 'Informe semanal disponible', 'Dashboard actualizado', 'Ayer'],
+    ['SI', 'Reglas de priorización activas', 'Alertas automáticas habilitadas', 'Ayer'],
   ];
 
   return (
     <div className="vpane on" id="v-alert">
       <div className="kpis" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-        <Kpi label="Casos prioritarios" value="9" detail="Requieren respuesta en 48 horas" icon="fire" hot />
-        <Kpi label="Próximos a vencer" value="14" detail="Menos de 3 días de término" icon="clock" />
-        <Kpi label="Vencidos" value="3" detail={<><span className="dn">+1</span> frente a ayer</>} icon="alert" />
-        <Kpi label="Casos sensibles" value="6" detail="Acceso restringido" icon="shield" />
+        <Kpi label="Casos prioritarios" value={String(urgentCount)} detail="Requieren respuesta en 48 horas" icon="fire" hot />
+        <Kpi label="Próximos a vencer" value={String(warningCount)} detail="Menos de 3 días de término" icon="clock" />
+        <Kpi label="Vencidos" value={String(alerts.filter(a => a.alert_type === 'overdue').length)} detail="Requieren atención urgente" icon="alert" />
+        <Kpi label="Total alertas" value={String(totalAlerts)} detail="Alertas activas del sistema" icon="shield" />
       </div>
       <div className="g2" style={{ marginTop: 16 }}>
         <div className="card">
           <div className="card-hd">
             <h3>Alertas automáticas</h3>
-            <span className="badge b-red"><span className="dot" />9 sin atender</span>
+            <span className="badge b-red"><span className="dot" />{totalAlerts} activas</span>
           </div>
-          {alerts.map((a, i) => (
-            <div key={i} className="alert-card">
-              <span className="ic" style={{ background: cmap[a.c][0], color: cmap[a.c][1] }}>
-                <Icon name={a.i} size={17} />
-              </span>
-              <div className="bd"><b>{a.t}</b><p>{a.p}</p></div>
-              <button className="btn btn-ghost btn-sm" style={{ flex: '0 0 auto' }}>{a.b}</button>
-            </div>
-          ))}
+          {loading ? (
+            <div className="alert-card"><span className="muted">Cargando alertas...</span></div>
+          ) : alerts.length === 0 ? (
+            <div className="alert-card"><span className="muted">No hay alertas activas</span></div>
+          ) : (
+            alerts.map((a, i) => (
+              <div key={i} className="alert-card">
+                <span className="ic" style={{ background: cmap[a.severity]?.[0] || 'var(--navy-050)', color: cmap[a.severity]?.[1] || 'var(--navy)' }}>
+                  <Icon name={a.alert_type === 'overdue' ? 'clock' : a.alert_type === 'due_soon' ? 'alert' : 'fire'} size={17} />
+                </span>
+                <div className="bd"><b>{a.title}</b><p>{a.description}</p></div>
+                <button className="btn btn-ghost btn-sm" style={{ flex: '0 0 auto' }}>Ver</button>
+              </div>
+            ))
+          )}
         </div>
         <div className="card">
           <div className="card-hd">
-            <h3>Notificaciones del equipo</h3>
-            <button className="btn btn-quiet btn-sm">Marcar todo como leído</button>
+            <h3>Actividad del sistema</h3>
           </div>
           {notifs.map(([ini, t, s, tm], i) => (
             <div key={i} className="alert-card">

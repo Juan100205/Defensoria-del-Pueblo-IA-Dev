@@ -55,8 +55,8 @@ export function ConfirmationScene({ radicado, fecha, hora, data, onNavigate }: C
               </button>
             </div>
             <div className="meta">
-              <div><small>Fecha de radicación</small><b>{fecha}</b></div>
-              <div><small>Hora</small><b>{hora}</b></div>
+              <div><small>Fecha de radicación</small><b>{fecha || new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })}</b></div>
+              <div><small>Hora</small><b>{hora || new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</b></div>
               <div><small>Estado inicial</small><b><Badge variant="navy" dot>Recibida</Badge></b></div>
             </div>
             <div className="bd">

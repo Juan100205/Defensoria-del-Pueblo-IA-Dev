@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { RECORDS } from '../../data/mockData';
+import { useState, useEffect, useCallback } from 'react';
 import { ESTADOS, TIPOS } from '../../data/constants';
+import { getCases } from '../../lib/api';
 import type { AdminView } from '../../data/constants';
 
 interface SolicitudesViewProps {
@@ -16,25 +16,50 @@ export function SolicitudesView({ onNavigate }: SolicitudesViewProps) {
   const [fDep, setFDep] = useState('');
   const [fTipo, setFTipo] = useState('');
   const [fUrg, setFUrg] = useState('');
+  const [rows, setRows] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getCases({
+        query: fQ || undefined,
+        status: fEstado || undefined,
+        department: fDep || undefined,
+        complaint_type: fTipo || undefined,
+        urgency: fUrg || undefined,
+        page,
+        page_size: PAGE,
+      });
+      setRows(result || []);
+      setTotal(result?.[0]?.total_count || 0);
+    } catch (err) {
+      console.error('Error fetching cases:', err);
+      setRows([]);
+      setTotal(0);
+    }
+    setLoading(false);
+  }, [fQ, fEstado, fDep, fTipo, fUrg, page]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const stBadge = (e: string) =>
-    ({ 'Recibida': 'b-grey', 'En análisis': 'b-gold', 'Asignada': 'b-navy', 'En trámite': 'b-navy', 'Finalizada': 'b-green' } as Record<string, string>)[e] || 'b-grey';
+    ({ 'recibida': 'b-grey', 'en_analisis': 'b-gold', 'asignada': 'b-navy', 'en_tramite': 'b-navy', 'finalizada': 'b-green' } as Record<string, string>)[e] || 'b-grey';
+
+  const stLabel = (e: string) =>
+    ({ 'recibida': 'Recibida', 'en_analisis': 'En análisis', 'asignada': 'Asignada', 'en_tramite': 'En trámite', 'finalizada': 'Finalizada' } as Record<string, string>)[e] || e;
 
   const urgColor = (u: string) =>
-    ({ 'Alta': 'var(--red)', 'Media': 'var(--gold)', 'Baja': '#9AA4B2' } as Record<string, string>)[u] || '#9AA4B2';
+    ({ 'alta': 'var(--red)', 'media': 'var(--gold)', 'baja': '#9AA4B2' } as Record<string, string>)[u] || '#9AA4B2';
 
-  const filtered = RECORDS.filter(
-    (r) =>
-      (!fQ || r.rad.toLowerCase().includes(fQ.toLowerCase()) || r.nombre.toLowerCase().includes(fQ.toLowerCase()) || r.asunto.toLowerCase().includes(fQ.toLowerCase())) &&
-      (!fEstado || r.estado === fEstado) &&
-      (!fDep || r.dep === fDep) &&
-      (!fTipo || r.tipo === fTipo) &&
-      (!fUrg || r.urg === fUrg),
-  );
+  const urgLabel = (u: string) =>
+    ({ 'alta': 'Alta', 'media': 'Media', 'baja': 'Baja' } as Record<string, string>)[u] || u;
 
+  const pages = Math.max(1, Math.ceil(total / PAGE));
   const start = (page - 1) * PAGE;
-  const rows = filtered.slice(start, start + PAGE);
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
 
   return (
     <div className="vpane on" id="v-sol">
@@ -48,11 +73,10 @@ export function SolicitudesView({ onNavigate }: SolicitudesViewProps) {
           </div>
           <select className="sel" value={fEstado} onChange={(e) => { setFEstado(e.target.value); setPage(1); }}>
             <option value="">Todos los estados</option>
-            {ESTADOS.map((e) => <option key={e}>{e}</option>)}
+            {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
           </select>
           <select className="sel" value={fDep} onChange={(e) => { setFDep(e.target.value); setPage(1); }}>
             <option value="">Todos los departamentos</option>
-            {[...new Set(RECORDS.map((r) => r.dep))].sort().map((d) => <option key={d}>{d}</option>)}
           </select>
           <select className="sel" value={fTipo} onChange={(e) => { setFTipo(e.target.value); setPage(1); }}>
             <option value="">Todos los tipos</option>
@@ -60,9 +84,9 @@ export function SolicitudesView({ onNavigate }: SolicitudesViewProps) {
           </select>
           <select className="sel" value={fUrg} onChange={(e) => { setFUrg(e.target.value); setPage(1); }}>
             <option value="">Toda urgencia</option>
-            <option>Alta</option>
-            <option>Media</option>
-            <option>Baja</option>
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
           </select>
           <button className="btn btn-quiet btn-sm" onClick={() => { setFQ(''); setFEstado(''); setFDep(''); setFTipo(''); setFUrg(''); setPage(1); }}>
             Limpiar filtros
@@ -76,17 +100,19 @@ export function SolicitudesView({ onNavigate }: SolicitudesViewProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.length > 0 ? rows.map((r) => (
-                <tr key={r.rad} onClick={() => onNavigate('det')} style={{ cursor: 'pointer' }}>
-                  <td className="rad">{r.rad}</td>
-                  <td><b style={{ fontWeight: 600 }}>{r.nombre}</b><div className="tiny muted">{r.doc}</div></td>
-                  <td><span className="badge b-grey">{r.tipo}</span></td>
-                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.asunto}</td>
-                  <td>{r.dep}<div className="tiny muted">{r.muni}</div></td>
-                  <td><span className={`badge ${stBadge(r.estado)}`}><span className="dot" />{r.estado}</span></td>
-                  <td><span className="urg"><i style={{ background: urgColor(r.urg) }} />{r.urg}</span></td>
-                  <td className="num">{r.fecha}<div className="tiny muted">{r.hora}</div></td>
-                  <td>{r.resp.split(' ')[0]} {r.resp.split(' ')[1] || ''}</td>
+              {loading ? (
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 44, color: 'var(--ink-3)' }}>Cargando solicitudes...</td></tr>
+              ) : rows.length > 0 ? rows.map((r: any) => (
+                <tr key={r.id} onClick={() => onNavigate('det')} style={{ cursor: 'pointer' }}>
+                  <td className="rad">{r.case_number}</td>
+                  <td><b style={{ fontWeight: 600 }}>{r.citizen_name}</b><div className="tiny muted">{r.citizen_doc}</div></td>
+                  <td><span className="badge b-grey">{r.complaint_type}</span></td>
+                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.subject_text || r.theme_name || '—'}</td>
+                  <td>{r.citizen_dept || '—'}<div className="tiny muted">{r.citizen_muni || ''}</div></td>
+                  <td><span className={`badge ${stBadge(r.status)}`}><span className="dot" />{stLabel(r.status)}</span></td>
+                  <td><span className="urg"><i style={{ background: urgColor(r.urgency) }} />{urgLabel(r.urgency)}</span></td>
+                  <td className="num">{r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO') : '—'}</td>
+                  <td>{r.assigned_name || 'Sin asignar'}</td>
                 </tr>
               )) : (
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 44, color: 'var(--ink-3)' }}>
@@ -97,7 +123,7 @@ export function SolicitudesView({ onNavigate }: SolicitudesViewProps) {
           </table>
         </div>
         <div className="pager">
-          <span>{filtered.length > 0 ? `${start + 1}–${Math.min(start + PAGE, filtered.length)}` : '0'} de {filtered.length} solicitudes</span>
+          <span>{total > 0 ? `${start + 1}–${Math.min(start + PAGE, total)}` : '0'} de {total} solicitudes</span>
           <div className="pgbtns">
             {Array.from({ length: Math.min(pages, 6) }, (_, i) => i + 1).map((i) => (
               <button key={i} className={`pgbtn ${i === page ? 'act' : ''}`} onClick={() => setPage(i)}>{i}</button>

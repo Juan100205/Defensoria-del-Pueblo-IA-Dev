@@ -26,6 +26,8 @@ const paths: Record<string, React.ReactNode> = {
   lock: <><rect x="4" y="10.5" width="16" height="10.5" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></>,
   pin: <><path d="M20 10.5c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z"/><circle cx="12" cy="10.3" r="2.8"/></>,
   x: <><path d="m6 6 12 12M18 6 6 18"/></>,
+  mic: <><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4M8 21h8"/></>,
+  stop: <><rect x="6" y="6" width="12" height="12" rx="2"/></>,
   tag: <><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4.8A2 2 0 0 1 4.8 2.8H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8z"/><path d="M7.5 7.5h.01"/></>,
   scale: <><path d="M12 3v18M7 21h10M5 7h14M8.5 7 5.5 14h6zM15.5 7l-3 7h6z"/></>,
   copy: <><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></>,
