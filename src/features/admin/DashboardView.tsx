@@ -33,8 +33,6 @@ export function DashboardView() {
   const [types, setTypes] = useState<TypeRow[]>([]);
   const [weeks, setWeeks] = useState<WeekRow[]>([]);
   const [feed, setFeed] = useState<ActivityRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     Promise.all([
       getDashboardStats().then(d => setStats(d)),
@@ -42,7 +40,7 @@ export function DashboardView() {
       getCasesByType().then(d => setTypes(d || [])),
       getCasesByWeek().then(d => setWeeks(d || [])),
       getRecentActivity().then(d => setFeed(d || [])),
-    ]).finally(() => setLoading(false));
+    ]);
   }, []);
 
   const kpis = [
