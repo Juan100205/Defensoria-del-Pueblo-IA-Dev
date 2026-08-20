@@ -23,7 +23,7 @@ export function Hero({ onNavigate, onOpenModal }: HeroProps) {
           sin formularios largos, y le entregamos su número de radicado al terminar.
         </p>
         <div className="hero-cta">
-          <button className="btn btn-primary btn-lg" onClick={() => onNavigate('chat')}>
+          <button className="btn btn-primary btn-lg" onClick={() => onNavigate('consent')}>
             <Icon name="chat" size={20} /> Radicar una PQR
           </button>
           <button

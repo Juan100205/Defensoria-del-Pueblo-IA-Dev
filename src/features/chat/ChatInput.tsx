@@ -217,7 +217,14 @@ export function ChatInput({ step, onAnswer }: ChatInputProps) {
           >
             Autorizo y radico mi solicitud
           </button>
-          <button className="btn btn-quiet">Leer política completa</button>
+          <a
+            className="btn btn-quiet"
+            href="https://www.defensoria.gov.co/documents/20123/1405761/Protecciondedatospersonales.pdf/0695889f-96e8-df23-0e5d-0542fb3a8778?t=1743431809743&utm_source=chatgpt.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Leer política completa
+          </a>
         </div>
       </>
     );

@@ -4,6 +4,7 @@ import { Toast } from './components/ui/Toast';
 import { Modal } from './components/ui/Modal';
 import { DemoBar } from './components/layout/DemoBar';
 import { PortalScene } from './features/portal/PortalScene';
+import { ConsentScene } from './features/consent/ConsentScene';
 import { ChatScene } from './features/chat/ChatScene';
 import { ConfirmationScene } from './features/confirmation/ConfirmationScene';
 import { MailScene } from './features/mail/MailScene';
@@ -47,6 +48,7 @@ function App() {
       <SvgDefs />
 
       {scene === 'portal' && <PortalScene onNavigate={handleSceneChange} onOpenModal={openModal} />}
+      {scene === 'consent' && <ConsentScene onNavigate={handleSceneChange} />}
       {scene === 'chat' && <ChatScene onNavigate={handleSceneChange} onFinished={handleChatFinished} />}
       {scene === 'conf' && (
         <ConfirmationScene
