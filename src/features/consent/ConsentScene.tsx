@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { GovStrip } from '../../components/layout/GovStrip';
 import { PublicHeader } from '../../components/layout/PublicHeader';
 import { PublicFooter } from '../../components/layout/PublicFooter';
@@ -12,6 +12,19 @@ interface ConsentSceneProps {
 
 export function ConsentScene({ onNavigate }: ConsentSceneProps) {
   const [accepted, setAccepted] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const toggleAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setPlaying(!playing);
+  };
 
   const handleAccept = () => {
     localStorage.setItem('dp_terms_accepted', 'true');
@@ -30,6 +43,19 @@ export function ConsentScene({ onNavigate }: ConsentSceneProps) {
           </div>
           <h2>Términos y Condiciones de Uso</h2>
           <p className="consent-subtitle">Asistente Virtual de la Defensoría del Pueblo</p>
+
+          <div className="consent-audio">
+            <audio
+              ref={audioRef}
+              src="/audio-proteccion.mpeg"
+              onEnded={() => setPlaying(false)}
+            />
+            <button className={`audio-btn ${playing ? 'playing' : ''}`} onClick={toggleAudio}>
+              <Icon name={playing ? 'x' : 'clock'} size={18} />
+              <span>{playing ? 'Detener audio' : 'Escuchar mensaje'}</span>
+            </button>
+            {playing && <span className="audio-hint">Escuche mientras lee el texto a continuación</span>}
+          </div>
 
           <div className="consent-body">
             <div className="consent-alert">
