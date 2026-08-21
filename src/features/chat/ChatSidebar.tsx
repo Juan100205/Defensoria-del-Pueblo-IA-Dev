@@ -1,3 +1,5 @@
+import { Icon } from '../../icons/Icons';
+
 interface ChatSidebarProps {
   data: Record<string, string>;
   branch: string | null;
@@ -13,71 +15,91 @@ const BRANCH_LABELS: Record<string, string> = {
   tutela: 'Tutela',
 };
 
-const FIELD_LABELS: Record<string, string> = {
-  Nombre: 'Nombre completo',
-  Documento: 'Documento',
-  Correo: 'Correo electronico',
-  Telefono: 'Telefono',
-  Ciudad: 'Ubicacion',
-  Descripcion: 'Descripcion',
-};
+const FIELDS: { key: string; label: string; icon: string }[] = [
+  { key: 'Nombre', label: 'Nombre completo', icon: 'users' },
+  { key: 'Documento', label: 'Documento', icon: 'doc' },
+  { key: 'Correo', label: 'Correo electronico', icon: 'mail' },
+  { key: 'Telefono', label: 'Telefono', icon: 'chat' },
+  { key: 'Ciudad', label: 'Ubicacion', icon: 'pin' },
+  { key: 'Descripcion', label: 'Descripcion', icon: 'doc' },
+];
 
 export function ChatSidebar({ data, branch, progressPct }: ChatSidebarProps) {
-  const fields = Object.entries(FIELD_LABELS);
+  const filledCount = FIELDS.filter(f => data[f.key]).length;
 
   return (
     <aside className="chat-side">
       <div className="side-card">
-        <h4 className="side-title">Datos del ciudadano</h4>
-        <p className="tiny muted" style={{ marginBottom: 10 }}>
-          {branch
-            ? `Tipo: ${BRANCH_LABELS[branch] || branch}`
-            : 'La IA detectara el tipo de solicitud...'}
-        </p>
-        <ul className="side-list">
-          {fields.map(([key, label]) => {
-            const value = data[key];
+        <div className="side-hd">
+          <div className="side-hd-icon">
+            <Icon name="users" size={18} />
+          </div>
+          <div>
+            <h4 className="side-title">Datos del ciudadano</h4>
+            <p className="side-sub">
+              {branch
+                ? `Tipo: ${BRANCH_LABELS[branch] || branch}`
+                : 'La IA detectara el tipo de solicitud...'}
+            </p>
+          </div>
+        </div>
+
+        <div className="side-fields">
+          {FIELDS.map((f) => {
+            const value = data[f.key];
+            const filled = !!value;
             return (
-              <li key={key} className="side-item">
-                <span className="side-label">{label}</span>
-                <span className={`side-val ${value ? '' : 'pending'}`}>
-                  {value || 'Pendiente'}
+              <div key={f.key} className={`side-field ${filled ? 'filled' : ''}`}>
+                <div className="side-field-left">
+                  <span className={`side-field-icon ${filled ? 'filled' : ''}`}>
+                    <Icon name={f.icon as any} size={14} />
+                  </span>
+                  <span className="side-field-label">{f.label}</span>
+                </div>
+                <span className={`side-field-value ${filled ? 'filled' : 'pending'}`}>
+                  {filled ? (
+                    <>
+                      <Icon name="check" size={13} />
+                      <span>{value}</span>
+                    </>
+                  ) : (
+                    <span className="side-field-dots">
+                      <span /><span /><span />
+                    </span>
+                  )}
                 </span>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
 
-        <div style={{ marginTop: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <div className="side-progress">
+          <div className="side-progress-top">
             <span className="tiny muted">Progreso</span>
-            <span className="tiny bold">{progressPct}%</span>
+            <span className="tiny bold">{filledCount}/{FIELDS.length} campos</span>
           </div>
-          <div style={{
-            height: 6,
-            background: 'var(--line)',
-            borderRadius: 3,
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%',
-              width: `${progressPct}%`,
-              background: 'var(--navy)',
-              borderRadius: 3,
-              transition: 'width 0.4s ease',
-            }} />
+          <div className="side-progress-bar">
+            <div
+              className="side-progress-fill"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
       </div>
 
-      <div className="side-card" style={{ marginTop: 12 }}>
-        <h4 className="side-title">Necesita ayuda?</h4>
-        <p className="tiny muted" style={{ marginBottom: 6 }}>
-          Linea nacional: <b>018000 914814</b>
-        </p>
-        <p className="tiny muted">
-          Horario: lunes a viernes 8:00 a.m. - 5:00 p.m.
-        </p>
+      <div className="side-card side-help">
+        <div className="side-help-hd">
+          <Icon name="chat" size={16} />
+          <span>Necesita ayuda?</span>
+        </div>
+        <div className="side-help-row">
+          <span className="tiny muted">Linea nacional</span>
+          <b>018000 914814</b>
+        </div>
+        <div className="side-help-row">
+          <span className="tiny muted">Horario</span>
+          <span className="tiny">Lun - Vie 8:00 a.m. - 5:00 p.m.</span>
+        </div>
       </div>
     </aside>
   );
