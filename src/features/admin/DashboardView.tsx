@@ -40,7 +40,7 @@ export function DashboardView() {
       getCasesByType().then(d => setTypes(d || [])),
       getCasesByWeek().then(d => setWeeks(d || [])),
       getRecentActivity().then(d => setFeed(d || [])),
-    ]);
+    ]).catch(() => {});
   }, []);
 
   const kpis = [
