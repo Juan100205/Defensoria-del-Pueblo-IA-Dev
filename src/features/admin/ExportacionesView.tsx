@@ -1,14 +1,43 @@
 import { useState } from 'react';
 import { Icon } from '../../icons/Icons';
+import { supabase } from '../../lib/supabase';
 
 export function ExportacionesView() {
   const [selFmt, setSelFmt] = useState('Excel');
+  const [exporting, setExporting] = useState(false);
 
   const fmts = [
     { k: 'Excel', c: '#1B7A4C', d: 'Tabla completa con filtros aplicados' },
     { k: 'PDF', c: '#B4232A', d: 'Informe formateado con gráficos' },
     { k: 'CSV', c: '#1E3A7B', d: 'Datos crudos para otros sistemas' },
+    { k: 'JSON', c: '#E67E22', d: 'Estructura para integración entre sistemas' },
   ];
+
+  const handleExport = async () => {
+    if (selFmt !== 'JSON') return;
+    setExporting(true);
+    try {
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `defensoria_casos_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Error al exportar. Intente de nuevo.');
+    }
+    setExporting(false);
+  };
 
   return (
     <div className="vpane on" id="v-exp">
@@ -25,7 +54,7 @@ export function ExportacionesView() {
                 className={`exp-card ${selFmt === f.k ? 'sel' : ''}`}
                 onClick={() => setSelFmt(f.k)}
               >
-                <div className="ic" style={{ background: f.c }}>{f.k === 'CSV' ? 'CSV' : f.k.slice(0, 3).toUpperCase()}</div>
+                <div className="ic" style={{ background: f.c }}>{f.k === 'CSV' ? 'CSV' : f.k === 'JSON' ? '{ }' : f.k.slice(0, 3).toUpperCase()}</div>
                 <b style={{ fontSize: 14 }}>{f.k}</b>
                 <p className="tiny muted" style={{ marginTop: 4, lineHeight: 1.5 }}>{f.d}</p>
               </div>
@@ -44,8 +73,8 @@ export function ExportacionesView() {
                 <span className={`switch ${i < 3 ? 'on' : ''}`} />
               </label>
             ))}
-            <button className="btn btn-primary" style={{ marginTop: 16 }}>
-              <Icon name="down" size={16} /> Generar exportación
+            <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleExport} disabled={exporting}>
+              <Icon name="down" size={16} /> {exporting ? 'Exportando...' : 'Generar exportación'}
             </button>
           </div>
         </div>
