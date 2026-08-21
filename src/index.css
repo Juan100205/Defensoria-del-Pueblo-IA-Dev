@@ -174,7 +174,7 @@ h4 {
 }
 
 @media print {
-  .demobar,
+  .demo-fab,
   .side,
   .top {
     display: none;
@@ -746,14 +746,18 @@ table.tbl .rad { font-weight: 700; color: var(--navy); font-variant-numeric: tab
   transition: opacity 0.25s, transform 0.25s var(--ease); z-index: 80; display: flex; align-items: center; gap: 9px;
 }
 .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
-.demobar {
-  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(14, 31, 69, 0.94);
-  border-radius: 99px; padding: 6px; display: flex; gap: 4px; align-items: center; box-shadow: var(--sh-3); z-index: 70; backdrop-filter: blur(6px);
-}
-.demobar .lb { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #7E93C2; font-weight: 700; padding: 0 10px 0 12px; }
-.demobar button { height: 30px; padding: 0 13px; border-radius: 99px; font-size: 12.5px; font-weight: 700; color: #C3D0E8; transition: all 0.16s; }
-.demobar button:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
-.demobar button.act { background: #fff; color: var(--navy-900); }
+/* Floating corner nav menu */
+.demo-fab { position: fixed; bottom: 24px; right: 24px; z-index: 70; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.demo-trigger { width: 52px; height: 52px; border-radius: 50%; background: var(--navy); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--sh-3); transition: all 0.2s var(--ease); }
+.demo-trigger:hover { background: var(--navy-700); transform: scale(1.05); }
+.demo-trigger.open { background: var(--red); }
+.demo-trigger.open:hover { background: #9a1c22; }
+.demo-menu { display: flex; flex-direction: column; gap: 6px; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 8px; box-shadow: var(--sh-3); animation: fabSlideUp 0.2s var(--ease) both; min-width: 150px; }
+@keyframes fabSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.demo-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-sm); font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; transition: all 0.15s; border: none; background: none; text-align: left; }
+.demo-item:hover { background: var(--navy-050); color: var(--navy); }
+.demo-item.act { background: var(--navy); color: #fff; }
+.demo-item.act:hover { background: var(--navy-700); }
 
 /* ============================================================
    RESPONSIVE
